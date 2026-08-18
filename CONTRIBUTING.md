@@ -62,12 +62,15 @@ Guidelines closely follow [Home Assistant core integration](https://developers.h
   - `mypy .`
   - `codespell .`
 - Keep all names and comments in English.
-- Do not use `# pragma: no cover`.
+- Do not use `# pragma: no cover` or other directives to suppress linter errors.
 - Put documentation of the device / protocol into `docs/my_bms.md`.
+
+### AI Policy
+AI tools are welcome as an aid, but you must fully understand and be able to explain every change you submit. Contributions made by autonomous agents are not accepted.
 
 ## Architecture Guidelines
 
-- Data shall be stored in the `BMSSample(TypedDict)` class. `TypedDict` (not `dataclass`) is used to allow automatic key-based assignment: `bmssample[key_variable] = value`, where `key_variable: BMSValue`.
+- Data shall be stored in the `BMSSample(TypedDict)` class. `TypedDict` (not `dataclass`) is used to allow automatic key-based assignment: `BMSSample[key_variable] = value`, where `key_variable: BMSValue`.
 - This library is about Bluetooth Low Energy (BLE) [battery management systems](#how-to-qualify-as-a-bms). No other device categories are included in order to keep the interface clean.
 - The BT pattern matcher (`matcher_dict_list()`) shall return patterns unique to the target device to enable reliable auto-detection.
 - Frame parsing shall validate each frame according to the protocol specification (e.g. CRC, length, allowed message types). Invalid frames shall be discarded.
@@ -75,6 +78,10 @@ Guidelines closely follow [Home Assistant core integration](https://developers.h
 - If available, data shall be read directly from the device. `BaseBMS._add_missing_values()` is only used to ensure consistent data across all BMS types.
 - Where possible, use the utility functions provided by `BaseBMS` (e.g. `_decode_data()`, `_cell_voltages()`, `_temp_values()`, `_check_integrity()`, `_cmd_modbus()`).
 - Tests shall use recorded frames from a real device (stored in `aiobmsble/test_data/`) to allow new parsed values to be added at a later point.
+- A `BMSSample` shall be provided per device, i.e. a Bluetooth device sending advertisement messages. If a BMS is part of a stack, it shall be
+  - an individual `BMSSample` if individually announced,
+  - one `BMSSample` with sub-units data fed to `packs` field in case only the main device announces via Bluetooth
+  - one `BMSSample` per device, in case there is a main device and multiple sub-units and all of them are announced. Map aggregated values to main device, and individuals to sub-units
 
 to be extended ...
 
